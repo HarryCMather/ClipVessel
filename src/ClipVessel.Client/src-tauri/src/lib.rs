@@ -33,25 +33,25 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<Result<(), Box<dyn Er
     let icon: Image = app.default_window_icon().expect("No icon exists").clone();
 
     TrayIconBuilder::new().menu(&menu)
-        .icon(icon)
-        .on_menu_event(|app, event| match event.id.as_ref() {
-            VIEW_LOGS_ID => {
-                if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
-            },
-            PAUSE_RESUME_ID => {
-                todo!("Still need to add functionality to handle the background job.");
-            },
-            EXIT_ID => {
-                app.exit(0);
-            },
-            other => {
-                println!("Error: Unknown menu item of '{}'", other);
-            }
-        })
-        .build(app)?;
+                          .icon(icon)
+                          .on_menu_event(|app, event| match event.id.as_ref() {
+                              VIEW_LOGS_ID => {
+                                  if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
+                                      let _ = window.show();
+                                      let _ = window.set_focus();
+                                  }
+                              },
+                              PAUSE_RESUME_ID => {
+                                  todo!("Still need to add functionality to handle the background job.");
+                              },
+                              EXIT_ID => {
+                                  app.exit(0);
+                              },
+                              other => {
+                                  println!("Error: Unknown menu item of '{}'", other);
+                              }
+                          })
+                          .build(app)?;
 
     if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
         let _ = window.hide();
