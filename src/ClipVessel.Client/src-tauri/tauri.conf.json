@@ -13,9 +13,11 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "clip-vessel-client",
+        "title": "Clip Vessel",
+        "label": "main",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "visible": true
       }
     ],
     "security": {
