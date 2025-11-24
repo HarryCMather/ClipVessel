@@ -35,13 +35,19 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                           .icon(icon)
                           .on_menu_event(|app, event| match event.id.as_ref() {
                               VIEW_LOGS_ID => {
+                                  
                                   if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-                                      if let Ok(showWindowResult) = window.show() &&
-                                         let Ok(setFocusResult) = window.set_focus() {
-                                          println!("Successfully showed the main window and set focus")
+                                      if let Ok(isWindowVisible) = window.is_visible() && !isWindowVisible {
+                                          if let Ok(showWindowResult) = window.show() &&
+                                             let Ok(setFocusResult) = window.set_focus() {
+                                              println!("Successfully showed the main window and set focus")
+                                          }
+                                          else {
+                                              println!("Error: Unable to show the main window or set focus")
+                                          }
                                       }
                                       else {
-                                          println!("Error: Unable to show the main window or set focus")
+                                          println!("Error: Cannot show main window as it's already visible")
                                       }
                                   }
                                   else {
