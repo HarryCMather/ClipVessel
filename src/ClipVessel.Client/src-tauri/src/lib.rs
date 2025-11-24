@@ -34,7 +34,7 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
     const MAIN_WINDOW_LABEL: &str = "main";
 
     let view_logs: MenuItem<Wry> = MenuItem::with_id(app, VIEW_LOGS_ID, "View Logs", true, None::<&str>)?;
-    let pause_resume: MenuItem<Wry> = MenuItem::with_id(app, PAUSE_RESUME_ID, "Pause/Resume Jobs", true, None::<&str>)?;
+    let pause_resume: MenuItem<Wry> = MenuItem::with_id(app, PAUSE_RESUME_ID, "Pause Jobs", true, None::<&str>)?;
     let exit: MenuItem<Wry> = MenuItem::with_id(app, EXIT_ID, "Exit", true, None::<&str>)?;
 
     let menu: Menu<Wry> = Menu::with_items(app, &[&view_logs, &pause_resume, &exit])?;
@@ -42,7 +42,7 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
 
     TrayIconBuilder::new().menu(&menu)
                           .icon(icon)
-                          .on_menu_event(|app_handle, event| match event.id.as_ref() {
+                          .on_menu_event(move |app_handle, event| match event.id.as_ref() {
                               VIEW_LOGS_ID => {
                                   if let Err(err) = show_window(&app_handle, MAIN_WINDOW_LABEL) {
                                       eprintln!("Error: {}", err)
@@ -51,10 +51,20 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                               PAUSE_RESUME_ID => {
                                   if let Ok(mut video_processor_service) = app_handle.state::<Arc<Mutex<VideoProcessorService>>>().lock() {
                                       let new_is_running_value: bool = !video_processor_service.get_is_running();
+                                      let new_is_running_label: &str = if new_is_running_value { "Pause Jobs" } else { "Resume Jobs" };
+
                                       match video_processor_service.set_is_running(&app_handle, new_is_running_value) {
-                                          Ok(_) => println!("Set is_running to {}", new_is_running_value),
+                                          Ok(_) => {
+                                              println!("Set is_running to {}", new_is_running_value);
+                                              if let Err(err) = pause_resume.set_text(new_is_running_label) {
+                                                  eprintln!("Error: is_running has been updated to {}, but a failure prevented the system tray label from updating {}", new_is_running_value, err)
+                                              }
+                                          },
                                           Err(err) => eprintln!("Error: {}", err)
                                       }
+                                  }
+                                  else {
+                                      eprintln!("Error: Failed to acquire the video processor service lock");
                                   }
                               },
                               EXIT_ID => {

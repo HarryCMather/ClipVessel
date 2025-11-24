@@ -8,7 +8,7 @@ pub struct VideoProcessorService {
 impl VideoProcessorService {
     pub(crate) fn new() -> VideoProcessorService {
         Self {
-            is_running: false
+            is_running: true
         }
     }
 
