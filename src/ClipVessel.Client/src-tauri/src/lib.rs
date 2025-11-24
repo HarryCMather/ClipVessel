@@ -10,12 +10,11 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .setup(|app| setup_system_tray_menu_options(app))
-        .run(tauri::generate_context!())
-        .expect("Error: Unexpected error was encountered while running Clip Vessel");
+    tauri::Builder::default().plugin(tauri_plugin_opener::init())
+                             .invoke_handler(tauri::generate_handler![greet])
+                             .setup(|app| setup_system_tray_menu_options(app))
+                             .run(tauri::generate_context!())
+                             .expect("Error: Unexpected error was encountered while running Clip Vessel");
 }
 
 fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
