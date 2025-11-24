@@ -1,0 +1,56 @@
+﻿@page "/"
+@implements IDisposable
+@inject IJSRuntime JsRuntime
+
+<main class="container">
+    <h1>Welcome to Clip Vessel</h1>
+
+    <div class="row">
+    </div>
+
+    <p>@(IsJobRunning ? "Job is running" : "Job is not running")</p>
+
+    <form class="row" @onsubmit="GreetAsync" @onsubmit:preventDefault="true">
+        <input id="greet-input" placeholder="Enter a name..." @bind="GreetInput"/>
+        <button type="submit">Greet</button>
+    </form>
+    <p>@GreetMsg</p>
+</main>
+
+@code
+{
+    private DotNetObjectReference<Home> _dotnetRef;
+    private bool IsJobRunning { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsJobRunning = await JsRuntime.InvokeAsync<bool>("__TAURI__.core.invoke", "is_job_running");
+
+        _dotnetRef ??= DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("subscribeToJobRunningStateChanges", _dotnetRef);
+    }
+
+    [JSInvokable]
+    public void OnJobRunningStateChanged(bool isJobRunning)
+    {
+        if (isJobRunning != IsJobRunning)
+        {
+            IsJobRunning = isJobRunning;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        _dotnetRef?.Dispose();
+    }
+
+    private string GreetInput { get; set; }
+
+    private string GreetMsg { get; set; }
+
+    private async Task GreetAsync()
+    {
+        GreetMsg = await JsRuntime.InvokeAsync<string>("__TAURI__.core.invoke", "greet", new { name = GreetInput });
+    }
+}
