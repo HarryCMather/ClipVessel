@@ -354,4 +354,4 @@ MigrationBackup/
 .DS_Store
 Thumbs.db
 Settings.json
-src/TwitchDropsDiscordBot/Settings.json
+src/ClipVessel.Client/dist
