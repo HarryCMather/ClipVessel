@@ -1,5 +1,6 @@
 use std::error::Error;
-use tauri::{tray::TrayIconBuilder, menu::{Menu, MenuItem}, Wry, Manager, App};
+use anyhow::{anyhow, bail};
+use tauri::{tray::TrayIconBuilder, menu::{Menu, MenuItem}, Wry, Manager, App, Window, AppHandle};
 use tauri::image::Image;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -33,31 +34,17 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
 
     TrayIconBuilder::new().menu(&menu)
                           .icon(icon)
-                          .on_menu_event(|app, event| match event.id.as_ref() {
+                          .on_menu_event(|app_handle, event| match event.id.as_ref() {
                               VIEW_LOGS_ID => {
-                                  if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-                                      if let Ok(is_window_visible) = window.is_visible() && !is_window_visible {
-                                          if let Ok(show_window_result) = window.show() &&
-                                             let Ok(set_focus_result) = window.set_focus() {
-                                              println!("Successfully showed the main window and set focus")
-                                          }
-                                          else {
-                                              println!("Error: Unable to show the main window or set focus")
-                                          }
-                                      }
-                                      else {
-                                          println!("Error: Cannot show main window as it's already visible")
-                                      }
-                                  }
-                                  else {
-                                      println!("Error: Unable to find main window to show")
+                                  if let Err(err) = show_window(&app_handle, MAIN_WINDOW_LABEL) {
+                                      eprintln!("Error: {}", err)
                                   }
                               },
                               PAUSE_RESUME_ID => {
                                   todo!("Still need to add functionality to handle the background job.");
                               },
                               EXIT_ID => {
-                                  app.exit(0);
+                                  app_handle.exit(0);
                               },
                               other => {
                                   println!("Error: Unknown menu item of '{}'", other);
@@ -65,17 +52,31 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                           })
                           .build(app)?;
 
-    if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-        if let Ok(hide_window_result) = window.hide() {
-            println!("Successfully hid the main window on startup")
-        }
-        else {
-            println!("Error: Unable to hide the main window")
-        }
-    }
-    else {
-        println!("Error: Unable to find main window to hide");
+    if let Err(err) = hide_window(&app, MAIN_WINDOW_LABEL) {
+        eprintln!("Error: {}", err)
     }
 
     Ok(())
+}
+
+fn hide_window(app: &App, window_label: &str) -> anyhow::Result<()> {
+    let window: Window = app.get_window(window_label)
+                            .ok_or_else(|| anyhow!("The {} window was not found", window_label))?;
+
+    window.hide()
+          .map_err(|err| anyhow!("Unable to hide the {} window: {}", window_label, err))
+}
+
+fn show_window(app: &AppHandle, window_label: &str) -> anyhow::Result<()> {
+    let window: Window = app.get_window(window_label)
+                            .ok_or_else(|| anyhow!("The {} window was not found", window_label))?;
+
+    if window.is_visible()? {
+        bail!("Cannot show the {} window, as it's already visible", window_label);
+    }
+
+    window.show()
+          .map_err(|err| anyhow!("Unable to show the {} window: {}", window_label, err))?;
+    window.set_focus()
+          .map_err(|err| anyhow!("Unable to set focus to the {} window: {}", window_label, err))
 }
