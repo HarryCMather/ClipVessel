@@ -1,9 +1,14 @@
+mod services;
+mod commands;
+
 use std::error::Error;
+use std::sync::{Arc, Mutex};
 use anyhow::{anyhow, bail};
 use tauri::{tray::TrayIconBuilder, menu::{Menu, MenuItem}, Wry, Manager, App, Window, AppHandle};
 use tauri::image::Image;
+use crate::commands::is_job_running_command::is_job_running;
+use crate::services::video_processor_service::VideoProcessorService;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -11,8 +16,11 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default().plugin(tauri_plugin_opener::init())
-                             .invoke_handler(tauri::generate_handler![greet])
+    let video_processor_service: Arc<Mutex<VideoProcessorService>> = Arc::new(Mutex::new(VideoProcessorService::new()));
+
+    tauri::Builder::default().manage(video_processor_service.clone())
+                             .plugin(tauri_plugin_opener::init())
+                             .invoke_handler(tauri::generate_handler![greet, is_job_running])
                              .setup(|app| setup_system_tray_menu_options(app))
                              .run(tauri::generate_context!())
                              .expect("Error: Unexpected error was encountered while running Clip Vessel");
@@ -41,13 +49,19 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                                   }
                               },
                               PAUSE_RESUME_ID => {
-                                  todo!("Still need to add functionality to handle the background job.");
+                                  if let Ok(mut video_processor_service) = app_handle.state::<Arc<Mutex<VideoProcessorService>>>().lock() {
+                                      let new_is_running_value: bool = !video_processor_service.get_is_running();
+                                      match video_processor_service.set_is_running(&app_handle, new_is_running_value) {
+                                          Ok(_) => println!("Set is_running to {}", new_is_running_value),
+                                          Err(err) => eprintln!("Error: {}", err)
+                                      }
+                                  }
                               },
                               EXIT_ID => {
                                   app_handle.exit(0);
                               },
                               other => {
-                                  println!("Error: Unknown menu item of '{}'", other);
+                                  eprintln!("Error: Unknown menu item of '{}'", other);
                               }
                           })
                           .build(app)?;
