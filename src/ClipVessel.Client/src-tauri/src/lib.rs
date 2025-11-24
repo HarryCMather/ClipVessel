@@ -59,7 +59,3 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<Result<(), Box<dyn Er
 
     Ok(Ok(()))
 }
-
-fn setup_system_tray_options() {
-
-}
