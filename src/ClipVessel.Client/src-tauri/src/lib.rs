@@ -35,11 +35,10 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                           .icon(icon)
                           .on_menu_event(|app, event| match event.id.as_ref() {
                               VIEW_LOGS_ID => {
-                                  
                                   if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-                                      if let Ok(isWindowVisible) = window.is_visible() && !isWindowVisible {
-                                          if let Ok(showWindowResult) = window.show() &&
-                                             let Ok(setFocusResult) = window.set_focus() {
+                                      if let Ok(is_window_visible) = window.is_visible() && !is_window_visible {
+                                          if let Ok(show_window_result) = window.show() &&
+                                             let Ok(set_focus_result) = window.set_focus() {
                                               println!("Successfully showed the main window and set focus")
                                           }
                                           else {
@@ -67,7 +66,7 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<(), Box<dyn Error>> {
                           .build(app)?;
 
     if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-        if let Ok(hideWindowResult) = window.hide() {
+        if let Ok(hide_window_result) = window.hide() {
             println!("Successfully hid the main window on startup")
         }
         else {
