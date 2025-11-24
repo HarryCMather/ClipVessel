@@ -37,8 +37,16 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<Result<(), Box<dyn Er
                           .on_menu_event(|app, event| match event.id.as_ref() {
                               VIEW_LOGS_ID => {
                                   if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-                                      let _ = window.show();
-                                      let _ = window.set_focus();
+                                      if let Ok(showWindowResult) = window.show() &&
+                                         let Ok(setFocusResult) = window.set_focus() {
+                                          println!("Successfully showed the main window and set focus")
+                                      }
+                                      else {
+                                          println!("Error: Unable to show the main window or set focus")
+                                      }
+                                  }
+                                  else {
+                                      println!("Error: Unable to find main window to show")
                                   }
                               },
                               PAUSE_RESUME_ID => {
@@ -54,7 +62,15 @@ fn setup_system_tray_menu_options(app: &mut App) -> Result<Result<(), Box<dyn Er
                           .build(app)?;
 
     if let Some(window) = app.get_window(MAIN_WINDOW_LABEL) {
-        let _ = window.hide();
+        if let Ok(hideWindowResult) = window.hide() {
+            println!("Successfully hid the main window on startup")
+        }
+        else {
+            println!("Error: Unable to hide the main window")
+        }
+    }
+    else {
+        println!("Error: Unable to find main window to hide");
     }
 
     Ok(Ok(()))
