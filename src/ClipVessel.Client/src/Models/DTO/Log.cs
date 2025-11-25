@@ -1,4 +1,6 @@
-﻿namespace ClipVesselClient.Models.DTO;
+﻿using System;
+
+namespace ClipVesselClient.Models.DTO;
 
 /// <summary>
 /// Model to represent a log, which will be transferred from the Rust backend to the Blazor frontend.
